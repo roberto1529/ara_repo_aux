@@ -139,15 +139,15 @@ def procesar_facturas(contrato):
         # driver.close()
         # driver.switch_to.window(driver.window_handles[0])
      
-            pattern = os.path.join(download_path, '*')
-            # Buscar todos los archivos en la ruta
-            all_files = glob.glob(pattern)
-            # Filtrar y eliminar archivos que no sean .pdf
-            for file_path in all_files:
-                if not file_path.endswith('.pdf'):
-                  
+            pattern = os.path.join(download_path, '*.crdownload')
+            files_to_remove = glob.glob(pattern)
+            # Eliminar cada archivo encontrado
+            for file_path in files_to_remove:
+                    try:
                         os.remove(file_path)
                         print(f"Eliminado: {file_path}")
+                    except Exception as e:
+                        print(f"Error al eliminar {file_path}: {e}")
                    
 
     except Exception as e:
