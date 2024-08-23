@@ -13,7 +13,7 @@ import traceback
 import pandas as pd
 
 #config_path = 'C:\\Users\\P340\ISES S.A.S\\Administrador App - Analitica de datos\\Proyectos_Automatizaciones\\bot_descarga_pdf_repo_auditoria_enel\\config.toml'
-config_path = 'C:\\Users\\P551\\Desktop\\facturasara-1\\config.toml'
+config_path = 'C:\\Users\\P108\\Documents\\ARA_PY\\ara_repo_aux\\config.toml'
 
 with open(config_path, 'r') as f:
     config = toml.load(f)
@@ -330,7 +330,6 @@ def read_excel_dispac():
         print(f"Ha ocurrido un error al leer el informe: {e}")
         
         
-
 def read_excel_electrocaqueta():
     
     
@@ -354,5 +353,32 @@ def read_excel_electrocaqueta():
         
         return df
         
+    except Exception as e:
+        print(f"Ha ocurrido un error al leer el informe: {e}")
+
+def read_excel_energiaputumayo():
+    try:
+        data = config['CARPETA_DATA']['RUTA_EXCEL']
+
+        df = pd.read_excel(data, sheet_name='HOJA DE TRABAJO')
+
+        columnas_a_mantener = ['Supplier', 'AVI', 'CONTRATO']
+
+        # Limpiar columna CONTRATO
+        # df['CONTRATO'] = df['CONTRATO'].str.replace('.', '', regex=False)
+
+        # Filtrar columna contrato != vacio and != no aplica
+        df = df[df['CONTRATO'].notna() & (df['CONTRATO'] != 'NO APLICA')]
+
+        # Filtrar columna supplier para encontrar la comercializadora
+        df = df[df['Supplier'].str.contains('EMPRESA DE ENERGIA DEL PUTUMAYO SA ESP', case=False, na=False)]
+
+        # Filtrar columna AVI == si
+        df = df[df['AVI'] == 'SI']
+
+        df = df[columnas_a_mantener]
+
+        return df
+
     except Exception as e:
         print(f"Ha ocurrido un error al leer el informe: {e}")

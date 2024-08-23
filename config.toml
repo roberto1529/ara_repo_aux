@@ -34,7 +34,7 @@ carpeta_facturas_dispac = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Anal
 carpeta_facturas_electrocaqueta = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas\\Facturas_electrocaqueta"
 
 [CARPETA_DATA]
-RUTA_EXCEL = 'C:\\Users\\P551\\Desktop\\facturasara-1\\HOJA DE TRABAJO ARA 2024.xlsx'
+RUTA_EXCEL = 'C:\\Users\\P108\\Documents\\ARA_PY\\HOJA DE TRABAJO ARA 2024.xlsx'
 
 [PATRON]
 vatia = '''^[0-9]{1,7}\.pdf$'''

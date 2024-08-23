@@ -14,7 +14,6 @@ import os
 import traceback as tr
 import time
 import toml
-import fitz  
 import logging
 import calendar
 import shutil  # Import shutil for moving files
