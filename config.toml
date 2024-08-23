@@ -1,0 +1,50 @@
+[app_parameters]
+ind_actualizar = false
+ind_break = true
+LOGGER_NAME = 'bot_ARA'
+LOG_LEVEL = 'INFO'
+ON_ERROR_EMAIL = ['amaldonado@ises.com.co']
+
+
+[afinia]
+usuario = 'jeisonvaliente-12@hotmail.com'
+pwd = 'Coqui.1998'
+
+[DICT_APP_MAIL]
+app_mail = 'alanma407@hotmail.com'
+smtp_server = 'smtp.office365.com'
+smtp_port = '587'
+email_pass = 'dante2001'
+
+[EMAIL_SEND_AIRE]
+email_recept = 'alanma407@hotmail.com'
+
+
+[CARPETA_FACTURAS]
+ruta = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas"
+carpeta_facturas_vatia = 'C:\\Users\\P340\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas_vatia'
+carpeta_facturas_neu = 'C:\\Users\\P340\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas_neu'
+carpeta_facturas_afinia = 'C:\\Users\\P340\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas_afinia'
+carpeta_facturas_otros = 'C:\\Users\\P340\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas_aire'
+carpeta_facturas_ara = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas\\Factturasara"
+carpeta_facturas_celsia = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas\\Facturas_celsia"
+carpeta_facturas_emsa = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas\\Facturas_emsa"
+carpeta_facturas_energuaviare = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas\\Facturas_energuaviare"
+carpeta_facturas_dispac = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas\\Facturas_dispac"
+carpeta_facturas_electrocaqueta = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas\\Facturas_electrocaqueta"
+
+[CARPETA_DATA]
+RUTA_EXCEL = 'C:\\Users\\P108\\Documents\\ARA_PY\\HOJA DE TRABAJO ARA 2024.xlsx'
+
+[PATRON]
+vatia = '''^[0-9]{1,7}\.pdf$'''
+neu = '''\bFACTURA_[0-9]+_[0-9]+\.pdf\b'''
+afinia = '''\d{10}.pdf'''
+
+[MULTI_PROCCESING]
+process = 2
+
+
+
+
+
