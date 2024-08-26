@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: my_postgres
+    environment:
+      POSTGRES_USER: rob
+      POSTGRES_PASSWORD: Ises2024**
+      POSTGRES_DB: public
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - my_network
+
+networks:
+  my_network:
+
+volumes:
+  db_data:
