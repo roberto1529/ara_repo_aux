@@ -6,18 +6,18 @@ LOG_LEVEL = 'INFO'
 ON_ERROR_EMAIL = ['amaldonado@ises.com.co']
 
 
-[afinia]
-usuario = 'jeisonvaliente-12@hotmail.com'
-pwd = 'Coqui.1998'
-
 [DICT_APP_MAIL]
 app_mail = 'alanma407@hotmail.com'
 smtp_server = 'smtp.office365.com'
 smtp_port = '587'
 email_pass = 'dante2001'
 
+
 [EMAIL_SEND_AIRE]
 email_recept = 'alanma407@hotmail.com'
+
+[correo]
+remitente = ["alanma407@hotmail.com", "alanma08@hotmail.com"]
 
 
 [CARPETA_FACTURAS]
@@ -33,13 +33,17 @@ carpeta_facturas_energuaviare = "C:\\Users\\P551\\ISES S.A.S\\Administrador App 
 carpeta_facturas_dispac = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas\\Facturas_dispac"
 carpeta_facturas_electrocaqueta = "C:\\Users\\P551\\ISES S.A.S\\Administrador App - Analitica de datos\\Proyecto ARA\\Facturas\\Facturas_electrocaqueta"
 
+
 [CARPETA_DATA]
-RUTA_EXCEL = 'C:\\Users\\P108\\Documents\\ARA_PY\\HOJA DE TRABAJO ARA 2024.xlsx'
+RUTA_EXCEL = "C:\\Users\\P108\\Documents\\ARA_PY\\HOJA DE TRABAJO ARA 2024.xlsx"
+RUTA_EXCEL_ACTUALIZADO = "C:\\Users\\P551\\Desktop\\facturasara-2\\historico vatia-neu.xlsx"
+
 
 [PATRON]
 vatia = '''^[0-9]{1,7}\.pdf$'''
 neu = '''\bFACTURA_[0-9]+_[0-9]+\.pdf\b'''
 afinia = '''\d{10}.pdf'''
+
 
 [MULTI_PROCCESING]
 process = 2
