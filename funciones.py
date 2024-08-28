@@ -270,27 +270,11 @@ def registrar_descarga(contrato, pdf_path, log_file):
     with open(log_file, 'a') as log:
         log.write(f"{contrato}.pdf,{pdf_path}\n")
 
-# def remonbrar_arc(archivo):
-      # Esperar a que el archivo se descargue completamente
-        # archivos_pdf = [f for f in os.listdir(archivo) if f.endswith('.pdf')]
-        # archivos_doc = [f for f in archivos_pdf if 'doc.pdf' in f]
-        
-        # for archivo in archivos_doc:
-        #     nuevo_nombre = f"{contrato}.pdf"
-        #     nuevo_nombre_path = os.path.join(archivo, nuevo_nombre)
-
-        #     # Evitar sobrescritura, agregar sufijo incremental si el archivo ya existe
-        #     if os.path.exists(nuevo_nombre_path):
-        #         base, ext = os.path.splitext(nuevo_nombre)
-        #         contador = 1
-        #         while os.path.exists(nuevo_nombre_path):
-        #             nuevo_nombre = f"{base}_{contador}{ext}"
-        #             nuevo_nombre_path = os.path.join(download_path, nuevo_nombre)
-        #             contador += 1
-        #     os.rename(os.path.join(download_path, archivo), nuevo_nombre_path)
-            
-
-        #     logging.info(f"Archivo renombrado a: {nuevo_nombre}")
-       
-        # if not archivos_doc:
-        #     logging.warning("No se encontraron archivos PDF con el nombre 'doc.pdf'.")
+def extraer_anio(texto):
+    # Asumimos que el año está compuesto por los últimos dos caracteres
+    anio_abreviado = texto[-2:]
+    
+    # Convertimos el año abreviado en un año completo (asumiendo que está en el rango de 2000 a 2099)
+    anio = int("20" + anio_abreviado)
+    
+    return anio

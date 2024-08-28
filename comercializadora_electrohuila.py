@@ -127,7 +127,6 @@ def leer_pdf(pdf_path):
     finally:
         pdf_document.close()
 
-
 def procesar_facturas(contrato):
     """
     Procesa un contrato descargando el PDF, extrayendo información relevante,

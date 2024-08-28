@@ -362,7 +362,7 @@ def read_excel_energiaputumayo():
 
         df = pd.read_excel(data, sheet_name='HOJA DE TRABAJO')
 
-        columnas_a_mantener = ['Supplier', 'AVI', 'CONTRATO']
+        columnas_a_mantener = ['Supplier', 'AVI', 'CONTRATO', 'SAP']
 
         # Limpiar columna CONTRATO
         # df['CONTRATO'] = df['CONTRATO'].str.replace('.', '', regex=False)

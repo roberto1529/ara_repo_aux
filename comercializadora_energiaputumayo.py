@@ -10,9 +10,11 @@ import os
 import datetime
 import logging
 import glob
-from commons.commons import read_excel_energiaputumayo, process_error, send_email
-
+from commons.commons import read_excel_energiaputumayo, read_excel_homologacion
+from funciones import generar_arbol_carpetas,extraer_anio, obtener_mes_numero, conexion_correo
 def procesar_facturas(contrato):
+
+    
     # Configuración del logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -32,9 +34,9 @@ def procesar_facturas(contrato):
     options.add_argument("--allow-insecure-localhost")
     options.add_argument("--disable-features=InsecureDownloadWarnings")
     options.add_argument("--window-size=800x600")  # Reducir tamaño de ventana
-
+    comercializadora = 'Energiaputumayo'
     # Configuración de preferencias de descarga
-    download_path = 'C:\\Users\\P108\\Documents\\PyDocto\\energiaputumayo'
+    download_path = f'C:\\Users\\P108\\Documents\\PyDocto\\{comercializadora}'
     prefs = {
         "download.prompt_for_download": False,
         "download.directory_upgrade": True,
@@ -63,7 +65,7 @@ def procesar_facturas(contrato):
         input_element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, 'matricula'))
         )
-        conStr = str(contrato)
+        conStr = str(contrato['CONTRATO'])
         input_element.send_keys(conStr)
 
         logging.info(f"Texto escrito en el input: {conStr}")
@@ -83,7 +85,7 @@ def procesar_facturas(contrato):
         # Encuentra la celda que contiene "Mes Facturado" y extrae el texto del siguiente <td> en la misma fila
         mes_facturado_element = driver.find_element(By.XPATH, '//table[@id="tablaFactura"]//tr[2]/td[2]')
         mes_facturado_text = mes_facturado_element.text
-        download_path = generar_arbol_carpetas(mes_facturado_text)
+        download_path = generar_arbol_carpetas(mes_facturado_text,comercializadora)
 
         # Actualiza las preferencias de descarga
         prefs["download.default_directory"] = download_path
@@ -94,6 +96,8 @@ def procesar_facturas(contrato):
 
         logging.info("Mes capturado: %s", mes_facturado_text)
         logging.info("Árbol generado: %s", download_path)
+        anio = extraer_anio(mes_facturado_text);
+        mes = obtener_mes_numero(mes_facturado_text)
 
         # Encuentra el formulario dentro de la tabla y el botón "Imprimir"
         print_button = driver.find_element(By.XPATH, '//table[@id="tablaFactura"]//input[@type="submit" and @value="Imprimir"]')
@@ -116,7 +120,7 @@ def procesar_facturas(contrato):
         archivos_doc = [f for f in archivos_pdf if 'doc.pdf' in f]
         
         for archivo in archivos_doc:
-            nuevo_nombre = f"{contrato}.pdf"
+            nuevo_nombre = f"{contrato['SAP']}_{contrato['Comercializadora']}_{anio}{mes}.pdf"
             nuevo_nombre_path = os.path.join(download_path, nuevo_nombre)
 
             # Evitar sobrescritura, agregar sufijo incremental si el archivo ya existe
@@ -146,8 +150,12 @@ def procesar_facturas(contrato):
                     try:
                         os.remove(file_path)
                         print(f"Eliminado: {file_path}")
+                        err = "error la  factura no esta disponible : " + str(file_path)
+                        conexion_correo('Error de ejecución en el bot', err);
                     except Exception as e:
                         print(f"Error al eliminar {file_path}: {e}")
+                        err = "Error al organizar factura: " + str(e)
+                        conexion_correo('Error de ejecución en el bot', err);
                    
 
     except Exception as e:
@@ -157,60 +165,25 @@ def procesar_facturas(contrato):
         driver.quit()
         
 
-def obtener_mes_numero(mes_texto):
-    meses = {
-        "ene": 1, "feb": 2, "mar": 3, "abr": 4, "may": 5, "jun": 6,
-        "jul": 7, "ago": 8, "sep": 9, "oct": 10, "nov": 11, "dic": 12
-    }
-
-    try:
-        mes_numero = int(mes_texto)
-        if 1 <= mes_numero <= 12:
-            return mes_numero
-        else:
-            print(f"Número de mes {mes_numero} no es válido")
-            return None
-    except ValueError:
-        mes_texto = mes_texto.lower()[:3]
-        return meses.get(mes_texto, None)
-
-def generar_arbol_carpetas(texto_fecha):
-    if '-' in texto_fecha:
-        mes_texto = texto_fecha.split('-')[0]
-    else:
-        mes_texto = texto_fecha[:3]
-
-    mes_numero = obtener_mes_numero(mes_texto)
-
-    if not mes_numero:
-        return None
-
-    anio_actual = datetime.datetime.now().year
-
-    ruta = os.path.join(
-        'C:\\Users\\P108\\Documents\\PyDocto\\energiaputumayo',
-        str(anio_actual),
-        f'{mes_numero:02d}'
-    )
-
-    if not os.path.exists(ruta):
-        os.makedirs(ruta)
-        print(f"Directorio {ruta} creado!")
-    else:
-        print(f"Directorio {ruta} ya existe")
-
-    return ruta
-
 def download_contratos():
     df = read_excel_energiaputumayo()
-    contratos = df['CONTRATO'].tolist()
 
-    for contrato in contratos:
-        procesar_facturas(contrato)
-        time.sleep(2)
+    # for contrato in contratos:
+    #     procesar_facturas(contrato)
+    #     time.sleep(2)
+    hm = read_excel_homologacion()
+    dfm = df.merge(hm, on='Supplier', how='left')
+
+    contratos = dfm.to_dict('records')  # Convertir DataFrame a lista de diccionarios
+
+    with mp.Pool(processes=1) as pool:
+        pool.starmap(procesar_facturas, [(contrato,) for contrato in contratos])
 
 if __name__ == "__main__":
     try:
         download_contratos()
     except Exception as e:
         logging.error(f"Ocurrió un error al cargar la aplicación: {e}")
+        err = "error de funcionamiento: " + str(e)
+        conexion_correo('Error de ejecución en el bot', err);
+
