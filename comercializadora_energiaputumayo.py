@@ -34,7 +34,7 @@ def procesar_facturas(contrato):
     options.add_argument("--allow-insecure-localhost")
     options.add_argument("--disable-features=InsecureDownloadWarnings")
     options.add_argument("--window-size=800x600")  # Reducir tamaño de ventana
-    comercializadora = 'Energiaputumayo'
+    comercializadora = 'ENERPUTUMAYO'
     # Configuración de preferencias de descarga
     download_path = f'C:\\Users\\P108\\Documents\\PyDocto\\{comercializadora}'
     prefs = {

@@ -14,7 +14,7 @@ from funciones import generar_arbol_carpetas, renombrar_pdf, conexion_correo, mo
 
 # Configuración del logging
 logger = start_logging("LOGS_EHUILA", mode="dev")
-comercializadora = 'Electrohuila'
+comercializadora = 'ELECTROHUILA'
 
 def configurar_navegador():
     """

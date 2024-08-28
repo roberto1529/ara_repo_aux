@@ -121,7 +121,7 @@ def insertar_datos(insert_query,datos,tabla):
 
 
 
-def conexion_correo(asunto_notificacion, formato_del_correo, cuerpo_notificacion):
+def conexion_correo(asunto_notificacion, cuerpo_notificacion):
     try:
        
         cuenta_correo = 'amaldonado@ises.com.co'
