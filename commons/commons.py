@@ -55,22 +55,22 @@ def process_email(send_to, subject, message):
                 print(f"ERROR connecting to smtp server: {error}")
                 time.sleep(0.1)
 
-
-def process_error(logger_name):
-    logger = logging.getLogger(logger_name)
-    # get error trace
-    error_trace = traceback.format_exc().splitlines()[::-1]
-    # log error
-    error_lines = []
-    for error_line in error_trace:
-        error_lines.append(error_line.strip())
-        if 'line' in error_line:
-            break
-    logger.error(" --> ".join(error_lines[::-1]))
-    # send email to admins
-    err_message = "\n".join(error_lines[::-1])
-    send_email(config['app_parameters']['ON_ERROR_EMAIL'], 'BOT Ara: Error Detected', err_message)
-    logger.info("email sent to dev-admins with error")
+# elminar estas funcion
+# def process_error(logger_name):
+#     logger = logging.getLogger(logger_name)
+#     # get error trace
+#     error_trace = traceback.format_exc().splitlines()[::-1]
+#     # log error
+#     error_lines = []
+#     for error_line in error_trace:
+#         error_lines.append(error_line.strip())
+#         if 'line' in error_line:
+#             break
+#     logger.error(" --> ".join(error_lines[::-1]))
+#     # send email to admins
+#     err_message = "\n".join(error_lines[::-1])
+#     send_email(config['app_parameters']['ON_ERROR_EMAIL'], 'BOT Ara: Error Detected', err_message)
+#     logger.info("email sent to dev-admins with error")
 
 
 def start_logging(logger_name, mode='dev'):
@@ -124,7 +124,7 @@ def exception_handler_and_timing(func):
             result = func(*args, **kwargs)
             return result
         except Exception:
-            process_error(app_logger.name)
+            print(app_logger.name)
         finally:
             end_time = time.time()
             execution_time = end_time - start_time
@@ -362,7 +362,7 @@ def read_excel_energiaputumayo():
 
         df = pd.read_excel(data, sheet_name='HOJA DE TRABAJO')
 
-        columnas_a_mantener = ['Supplier', 'AVI', 'CONTRATO']
+        columnas_a_mantener = ['Supplier', 'AVI', 'CONTRATO', 'SAP']
 
         # Limpiar columna CONTRATO
         # df['CONTRATO'] = df['CONTRATO'].str.replace('.', '', regex=False)
@@ -389,7 +389,7 @@ def read_excel_electrohuila():
 
         df = pd.read_excel(data, sheet_name='HOJA DE TRABAJO')
 
-        columnas_a_mantener = ['Supplier', 'AVI', 'CONTRATO']
+        columnas_a_mantener = ['Supplier', 'AVI', 'CONTRATO', 'SAP']
 
         # Limpiar columna CONTRATO
         # df['CONTRATO'] = df['CONTRATO'].str.replace('.', '', regex=False)
@@ -402,6 +402,20 @@ def read_excel_electrohuila():
 
         # Filtrar columna AVI == si
         df = df[df['AVI'] == 'SI']
+
+        df = df[columnas_a_mantener]
+
+        return df
+    except Exception as e:
+        print(f"Ha ocurrido un error al leer el informe: {e}")
+
+def read_excel_homologacion():
+    try:
+        data = config['CARPETA_DATA']['RUTA_EXCEL_HM']
+
+        df = pd.read_excel(data, sheet_name='DATA')
+
+        columnas_a_mantener = ['Supplier', 'Comercializadora razon social', 'Comercializadora']
 
         df = df[columnas_a_mantener]
 
