@@ -435,6 +435,32 @@ def read_excel_eebpsa():
     except Exception as e:
         print(f"Ha ocurrido un error al leer el informe: {e}")
 
+def read_excel_ebsa():
+    try:
+        data = config['CARPETA_DATA']['RUTA_EXCEL']
+
+        df = pd.read_excel(data, sheet_name='HOJA DE TRABAJO')
+
+        columnas_a_mantener = ['Supplier', 'AVI', 'CONTRATO', 'SAP']
+
+        # Limpiar columna CONTRATO
+        # df['CONTRATO'] = df['CONTRATO'].str.replace('.', '', regex=False)
+
+        # Filtrar columna contrato != vacio and != no aplica
+        df = df[df['CONTRATO'].notna() & (df['CONTRATO'] != 'NO APLICA')]
+
+        # Filtrar columna supplier para encontrar la comercializadora
+        df = df[df['Supplier'].str.contains('EMPRESA DE ENERGIA DE BOYACA S.A E.', case=False, na=False)]
+
+        # Filtrar columna AVI == si
+        df = df[df['AVI'] == 'SI']
+
+        df = df[columnas_a_mantener]
+
+        return df
+    except Exception as e:
+        print(f"Ha ocurrido un error al leer el informe: {e}")
+
 def read_excel_homologacion():
     try:
         data = config['CARPETA_DATA']['RUTA_EXCEL_HM']
