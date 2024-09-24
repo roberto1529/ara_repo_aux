@@ -181,9 +181,7 @@ def extraer_datos(texto):
     for etiqueta in orden_deseado:
         print(f'valor_{etiqueta}', resultados_ordenados[etiqueta])
         
-    print("Ancla")
 
-    print('General -> ', texto)
     
     return {
         "Fecha de inicio en periodo facturado": fecha_inicio,
