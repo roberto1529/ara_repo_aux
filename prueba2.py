@@ -1,175 +1,145 @@
-import multiprocessing as mp
-from threading import Thread
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
-from undetected_chromedriver import Chrome, ChromeOptions
-
-import win32com.client as win32
-import datetime
 import os
-import traceback as tr
-import time
-import toml
-import fitz  
+import pyodbc
+import pandas as pd
 import logging
-import calendar
-import shutil  # Import shutil for moving files
-import requests
-import re
+from dotenv import load_dotenv
+# link para descargar contralador : https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server?view=sql-server-ver16#download-for-windows
 
-from commons.commons import start_logging, read_excel_enelar, process_error, send_email
+# Configurar logging
+logging.basicConfig(
+    filename='analisis_irregularidades.log',
+    level=logging.INFO,
+    format='%(asctime)s:%(levelname)s:%(message)s'
+)
 
-# Importar archivo config. toml #
-with open("config.toml", "r") as f:
-    config = toml.load(f)
-
-
-logger = start_logging('LOGS_EMSA', mode='dev')
-
-
-def send_email2(subject, body):
-    """
-        Se encarga de enviar una notificación vía correo electronico
-        
-        Entradas: 
-            - subject: Hace referencia al asunto que llevará el correo.
-            - body: Hace referencia al cuerpo que llevará el correo.
-    """
-    try:
-        outlook = win32.Dispatch("Outlook.Application")
-        mail = outlook.CreateItem(0)
-        mail.Subject = subject
-        mail.Body = body
-        
-        mail.To = config["EMAIL_SEND_AIRE"]["email_recept"]
-        
-        mail.Send()
-        print("Correo enviado exitosamente.")
-    except Exception as e:
-        print(f"Error al enviar el correo: {e}")
-
-
-def process_contract(contrato):
-    """
-        Se encarga de procesar cada contrato por el número de contrato (NIC).
-        
-        Entradas:
-            - contrato: Hace referencia al número de contrato a procesar.
-    """    
-    
-    carpeta_facturas_energuaviare = config["CARPETA_FACTURAS"]["carpeta_facturas_energuaviare"]
-    
-    options = ChromeOptions()
-    preferences = {
-        "download.default_directory": carpeta_facturas_energuaviare,
-        "directory_upgrade": True,
-        "safebrowsing.enabled": True,
-        "safebrowsing.disable_download_protection": True,
-        "useAutomationExtension": False,
-        "profile.default_content_setting_values.notifications": 2,
-        "download.prompt_for_download": False,
-        "plugins.always_open_pdf_externally": True
+def cargar_variables_entorno():
+    """Cargar variables de entorno desde el archivo .env."""
+    load_dotenv()
+    return {
+        'server': os.getenv('DB_SERVER'),
+        'database': os.getenv('DB_DATABASE'),
+        'username': os.getenv('DB_USERNAME'),
+        'password': os.getenv('DB_PASSWORD'),
+        'port': os.getenv('DB_PORT'),
+        'secret_key': os.getenv('SECRET_KEY')
     }
-    
-    options.add_experimental_option("prefs", preferences)
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--disable-software-rasterizer")
-    options.add_argument("--disable-web-security")
-    options.add_argument("--allow-running-insecure-content")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_argument("--disable-extensions")
-    options.add_argument("--disable-popup-blocking")
-    options.add_argument("--disable-infobars")
-    options.add_argument("--start-maximized")
-    #options.add_argument("--headless")
 
-    if os.path.isfile("chromedriver.exe"):
-        driver = webdriver.Chrome(service=Service(executable_path="chromedriver.exe"), options=options)
-    else:
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-    driver.maximize_window()
-    
+def conectar_bd(config):
+    """Establecer conexión con la base de datos SQL Server."""
     try:
-        logger.info("=" * 100)
-        
-        # Inicia el proceso de procesamiento de facturas
-        logger.info(f"Procesando contrato: {contrato}")
-        
-        driver.get("https://enelar.net.co:9876/consultar-factura/")
-        
-        time.sleep(2)
-        
-        input_nic = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.ID, 'mat-input-0'))
+        conn = pyodbc.connect(
+            f'DRIVER={{ODBC Driver 17 for SQL Server}};'
+            f'SERVER={config["server"]},{config["port"]};'
+            f'DATABASE={config["database"]};'
+            f'UID={config["username"]};'
+            f'PWD={config["password"]}'
         )
-        
-        input_nic.send_keys(contrato)
-        
-        time.sleep(3)
-        
-        try:
-            
-            boton = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "button.mat-mini-fab"))
-            )
-            
-            logger.info(f"Obteniendo boton: {boton}")
-            
-            driver.execute_script("""
-                arguments[0].removeAttribute('disabled');
-                arguments[0].classList.remove('mat-button-disabled');
-            """, boton)
-            
-            logger.info(f"Captcha resuelto.")
-            
-            is_disabled = driver.execute_script("return arguments[0].hasAttribute('disabled');", boton)
-            has_class = driver.execute_script("return arguments[0].classList.contains('mat-button-disabled');", boton)
-            
-            logger.info(f"El botón está {'habilitado' if not is_disabled else 'deshabilitado'}")
-            logger.info(f"La clase 'mat-button-disabled' está {'presente' if has_class else 'eliminada'}")
-            
-            logger.info(f"Clic en descargar: {boton}")
-            
-            boton.click()
-            
-            time.sleep(50)
-            
-        except Exception as e:
-            logger.error(f"Error durante el manejo del CAPTCHA: {e}")
-    
-        time.sleep(5)
-    
+        logging.info("Conexión a la base de datos establecida con éxito.")
+        return conn
+    except pyodbc.Error as e:
+        logging.error(f"Error al conectar a la base de datos: {e}")
+        raise
+
+def obtener_datos(conn, consulta):
+    """Ejecutar una consulta SQL y retornar un DataFrame."""
+    try:
+        df = pd.read_sql(consulta, conn)
+        logging.info(f"Consulta ejecutada exitosamente: {consulta}")
+        return df
     except Exception as e:
-        
-        process_error('warning')
-        logger.error(f"Ocurrió un error al procesar el contrato {contrato}: {e}")
-    finally:
-        driver.quit()
+        logging.error(f"Error al ejecutar la consulta: {e}")
+        raise
 
-# Funcion multiproccesing.
+def procesar_irregularidades(df_acta):
+    """Procesar datos para calcular probabilidades y clientes recurrentes."""
+    try:
+        # Seleccionar columnas relevantes
+        columnas = [
+            'Póliza',
+            '¿Se_encuentra_irregularidad_en_acometida?',
+            '¿Se_encuentra_irregularidad_en_medidor?'
+        ]
+        df_irregularidades = df_acta[columnas].copy()
 
-def download_enelar():
-    """
-        Se encarga de recolectar todos los contratos y ejecutar la función 'process_contract' haciendo uso de la libreria multiprocessing para crear varios procesos en paralelo.
-    """
-    df = read_excel_enelar()
-    contratos = df['CONTRATO'].tolist()
+        # Convertir valores 'Si'/'No' a binarios
+        df_irregularidades['irregularidad_acometida'] = df_irregularidades['¿Se_encuentra_irregularidad_en_acometida?'].map({'Si': 1, 'No': 0})
+        df_irregularidades['irregularidad_medidor'] = df_irregularidades['¿Se_encuentra_irregularidad_en_medidor?'].map({'Si': 1, 'No': 0})
 
+        # Manejar valores faltantes
+        df_irregularidades['irregularidad_acometida'].fillna(0, inplace=True)
+        df_irregularidades['irregularidad_medidor'].fillna(0, inplace=True)
 
-    with mp.Pool(processes = 1) as pool:
-        pool.map(process_contract, contratos)
+        # Calcular total de irregularidades por registro
+        df_irregularidades['total_irregularidades'] = df_irregularidades[['irregularidad_acometida', 'irregularidad_medidor']].sum(axis=1)
+
+        # Calcular probabilidad promedio de irregularidades por cliente
+        df_probabilidad = df_irregularidades.groupby('Póliza')['total_irregularidades'].mean().reset_index()
+        df_probabilidad.rename(columns={'total_irregularidades': 'Probabilidad de Irregularidades'}, inplace=True)
+
+        # Identificar clientes recurrentes con irregularidades
+       # Contar clientes recurrentes con irregularidades
+        df_recurrentes_count = df_irregularidades[df_irregularidades['total_irregularidades'] > 0] \
+            .groupby('Póliza').size().reset_index(name='Cantidad de Irregularidades')
+
+        # Ordenar clientes por mayor probabilidad de irregularidades
+        df_top_clientes = df_probabilidad.sort_values(by='Probabilidad de Irregularidades', ascending=False)
+
+        logging.info("Procesamiento de datos completado exitosamente.")
+        return df_probabilidad, df_recurrentes_count, df_top_clientes
+
+    except Exception as e:
+        logging.error(f"Error al procesar los datos: {e}")
+        raise
+
+def generar_informes(df_prob, df_recurrentes, df_top_clientes):
+    """Guardar los DataFrames procesados en archivos CSV."""
+    try:
+        df_prob.to_csv('probabilidad_irregularidades.csv', index=False)
+        df_recurrentes.to_csv('clientes_recurrentes.csv', index=False)
+        df_top_clientes.to_csv('top_clientes_irregularidades.csv', index=False)
+        logging.info("Informes generados y guardados correctamente.")
+    except Exception as e:
+        logging.error(f"Error al generar los informes: {e}")
+        raise
+
+def main():
+    """Función principal para ejecutar el flujo completo."""
+    try:
+        # Cargar configuraciones
+        config = cargar_variables_entorno()
+
+        # Conectar a la base de datos
+        conn = conectar_bd(config)
+
+        # Consultas SQL optimizadas (seleccionar solo columnas necesarias)
+        query_inspeccion_tecnica = """
+            SELECT  * from ForMapDW.TRIPLEA.Vista_InspeccionTecnica vit
+        """
+
+        query_acta_inspeccion = """
+           SELECT  * from ForMapDW.TRIPLEA.Vista_ActaInspeccion vai
+        """
+
+        # Obtener datos
+        df_inspeccion_tecnica = obtener_datos(conn, query_inspeccion_tecnica)
+        df_acta_inspeccion = obtener_datos(conn, query_acta_inspeccion)
+
+        # Cerrar la conexión
+        conn.close()
+        logging.info("Conexión a la base de datos cerrada.")
+
+        # Procesar datos
+        df_probabilidad, df_recurrentes, df_top_clientes = procesar_irregularidades(df_acta_inspeccion)
+
+        # Generar informes
+        generar_informes(df_probabilidad, df_recurrentes, df_top_clientes)
+
+        print("Informe generado con éxito.")
+        logging.info("Script ejecutado correctamente.")
+
+    except Exception as e:
+        logging.error(f"Error en la ejecución del script: {e}")
+        print("Ocurrió un error durante la ejecución. Revisa el log para más detalles.")
 
 if __name__ == "__main__":
-    try:
-        download_enelar()
-    except Exception as e:
-        
-        process_error('warning')
-        logger.error(f"Ocurrió un error al cargar la aplicación: {e}")
+    main()
